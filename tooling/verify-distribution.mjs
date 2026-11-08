@@ -7,6 +7,7 @@ const root = process.cwd();
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'dist/package.json'), 'utf8'));
 assert.equal(manifest.private, true);
 assert.equal(manifest.license, 'UNLICENSED');
+assert.equal(manifest.repository.url,'git+https://github.com/PedroMorenoTrujillo/neural-charts-native-library.git');
 for (const [key, conditions] of Object.entries(manifest.exports)) for (const file of Object.values(conditions)) {
   assert.ok(fs.existsSync(path.join(root, 'dist', file)), `${key} -> ${file}`);
 }
