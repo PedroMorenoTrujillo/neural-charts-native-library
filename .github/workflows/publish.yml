@@ -1,0 +1,146 @@
+name: Publish Neural Charts Native beta
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+concurrency:
+  group: neural-charts-native-npm-beta
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'PedroMorenoTrujillo/neural-charts-native-library' &&
+      github.ref_type == 'tag' &&
+      startsWith(github.ref, 'refs/tags/v') &&
+      github.workflow_ref == format('{0}/.github/workflows/publish.yml@{1}', github.repository, github.ref) &&
+      github.actor_id == '43439808' &&
+      github.triggering_actor == 'PedroMorenoTrujillo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - name: Verify tag, main ancestry and release version
+        run: |
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          test "$(git rev-parse "$GITHUB_REF^{commit}")" = "$(git rev-parse HEAD)"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          const core = pkg.dependencies['@neural-charts/core'];
+          const installed = lock.packages['node_modules/@neural-charts/core'];
+          assert.match(pkg.version, /^\d+\.\d+\.\d+-beta\.\d+$/);
+          assert.equal(process.env.GITHUB_REF_NAME, 'v' + pkg.version);
+          assert.equal(pkg.private, true);
+          assert.match(core, /^\d+\.\d+\.\d+$/);
+          assert.equal(lock.packages[''].dependencies['@neural-charts/core'], core);
+          assert.equal(installed.version, core);
+          assert.equal(installed.resolved, 'https://registry.npmjs.org/@neural-charts/core/-/core-' + core + '.tgz');
+          assert.match(installed.integrity, /^sha512-[A-Za-z0-9+/]+={0,2}$/);
+          const res = await fetch('https://registry.npmjs.org/@neural-charts%2fnative/' + pkg.version, {signal: AbortSignal.timeout(10000)});
+          assert.equal(res.status, 404, 'Version already exists or the registry did not respond as expected');
+          NODE
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run verify
+      - run: node tooling/prepare-beta.mjs dist release
+      - name: Write archive digest
+        working-directory: release/archive
+        run: sha256sum "neural-charts-native-${GITHUB_REF_NAME#v}.tgz" > SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: neural-charts-native-beta
+          path: release/archive/
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'PedroMorenoTrujillo/neural-charts-native-library' &&
+      github.ref_type == 'tag' &&
+      startsWith(github.ref, 'refs/tags/v') &&
+      github.workflow_ref == format('{0}/.github/workflows/publish.yml@{1}', github.repository, github.ref) &&
+      github.actor_id == '43439808' &&
+      github.triggering_actor == 'PedroMorenoTrujillo'
+    needs: verify
+    environment: npm-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - run: npm install --global npm@11.21.0 --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: neural-charts-native-beta
+          path: archive
+      - name: Publish verified archive to beta
+        working-directory: archive
+        run: |
+          sha256sum --check SHA256SUMS
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          import {readFileSync} from 'node:fs';
+          const version = process.env.GITHUB_REF_NAME.slice(1);
+          const beta = /^\d+\.\d+\.\d+-beta\.\d+$/;
+          assert.match(version, beta);
+          const archive = './neural-charts-native-' + version + '.tgz';
+          const integrity = 'sha512-' + createHash('sha512').update(readFileSync(archive)).digest('base64');
+          const registry = 'https://registry.npmjs.org/@neural-charts%2fnative';
+          const read = async url => {
+            const response = await fetch(url, {
+              headers: {'cache-control': 'no-cache'},
+              signal: AbortSignal.timeout(10000),
+            });
+            if (response.status === 404) return null;
+            assert.ok(response.ok, 'Unexpected registry status: ' + response.status);
+            return response.json();
+          };
+          const compareBeta = (a, b) => {
+            const parts = value => value.match(/\d+/g).map(BigInt);
+            const left = parts(a), right = parts(b);
+            for (let i = 0; i < left.length; i++) {
+              if (left[i] !== right[i]) return left[i] < right[i] ? -1 : 1;
+            }
+            return 0;
+          };
+          const tags = (await read(registry))?.['dist-tags'] ?? {};
+          if (tags.beta) {
+            assert.match(tags.beta, beta, 'The beta tag does not point to a beta version');
+            assert(compareBeta(version, tags.beta) > 0, 'Refusing to roll back the beta tag');
+          }
+          assert.equal(await read(registry + '/' + version), null, 'Version already exists');
+          execFileSync('npm', ['publish', archive, '--access', 'public', '--tag', 'beta', '--ignore-scripts'], {stdio: 'inherit'});
+          let published;
+          let visibleBeta;
+          for (let i = 0; i < 40 && (!published || visibleBeta !== version); i++) {
+            published ??= await read(registry + '/' + version);
+            visibleBeta = (await read(registry))?.['dist-tags']?.beta;
+            if (!published || visibleBeta !== version) await new Promise(resolve => setTimeout(resolve, 2500));
+          }
+          assert.equal(published?.dist?.integrity, integrity, 'Published archive integrity mismatch');
+          assert.equal(visibleBeta, version, 'The beta tag has not propagated to the registry');
+          NODE

@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "src/native/**/*.ts",
+    "src/library/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "release"
+  ],
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "typeCheckHostBindings": false,
+    "strictDomEventTypes": false
+  }
+}
