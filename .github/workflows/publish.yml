@@ -53,8 +53,6 @@ jobs:
           assert.equal(installed.version, core);
           assert.equal(installed.resolved, 'https://registry.npmjs.org/@neural-charts/core/-/core-' + core + '.tgz');
           assert.match(installed.integrity, /^sha512-[A-Za-z0-9+/]+={0,2}$/);
-          const res = await fetch('https://registry.npmjs.org/@neural-charts%2fnative/' + pkg.version, {signal: AbortSignal.timeout(10000)});
-          assert.equal(res.status, 404, 'Version already exists or the registry did not respond as expected');
           NODE
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run verify
@@ -127,20 +125,31 @@ jobs:
             }
             return 0;
           };
-          const tags = (await read(registry))?.['dist-tags'] ?? {};
-          if (tags.beta) {
-            assert.match(tags.beta, beta, 'The beta tag does not point to a beta version');
-            assert(compareBeta(version, tags.beta) > 0, 'Refusing to roll back the beta tag');
+          const channel = 'https://registry.npmjs.org/-/package/@neural-charts%2fnative/dist-tags';
+          const release = registry + '/' + version;
+          const previous = await read(release);
+          if (!previous) {
+            const currentBeta = (await read(channel))?.beta;
+            if (currentBeta) {
+              assert.match(currentBeta, beta, 'The beta tag does not point to a beta version');
+              assert(compareBeta(version, currentBeta) > 0, 'Refusing to roll back the beta tag');
+            }
+            execFileSync('npm', ['publish', archive, '--access', 'public', '--tag', 'beta', '--ignore-scripts'], {stdio: 'inherit'});
           }
-          assert.equal(await read(registry + '/' + version), null, 'Version already exists');
-          execFileSync('npm', ['publish', archive, '--access', 'public', '--tag', 'beta', '--ignore-scripts'], {stdio: 'inherit'});
           let published;
           let visibleBeta;
-          for (let i = 0; i < 40 && (!published || visibleBeta !== version); i++) {
-            published ??= await read(registry + '/' + version);
-            visibleBeta = (await read(registry))?.['dist-tags']?.beta;
-            if (!published || visibleBeta !== version) await new Promise(resolve => setTimeout(resolve, 2500));
+          for (let i = 0; i < 60; i++) {
+            const query = '?verify=' + Date.now();
+            const [metadata, tags] = await Promise.all([read(release + query), read(channel + query)]);
+            published = metadata;
+            visibleBeta = tags?.beta;
+            if (published?.dist?.integrity) {
+              assert.equal(published.dist.integrity, integrity, 'Published archive integrity mismatch');
+              if (visibleBeta && beta.test(visibleBeta) && compareBeta(visibleBeta, version) >= 0) break;
+            }
+            if (i < 59) await new Promise(resolve => setTimeout(resolve, 5000));
           }
-          assert.equal(published?.dist?.integrity, integrity, 'Published archive integrity mismatch');
-          assert.equal(visibleBeta, version, 'The beta tag has not propagated to the registry');
+          assert.equal(published?.dist?.integrity, integrity, 'The verified beta archive did not appear in the registry');
+          assert.ok(visibleBeta && beta.test(visibleBeta) && compareBeta(visibleBeta, version) >= 0,
+            'The beta tag has not propagated to the registry');
           NODE
