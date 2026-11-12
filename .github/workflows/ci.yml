@@ -27,3 +27,5 @@ jobs:
           package-manager-cache: false
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run verify
+      - run: node tooling/prepare-beta.mjs dist release
+      - run: node tooling/verify-consumer.mjs release/archive/neural-charts-native-$(node -p "require('./package.json').version").tgz

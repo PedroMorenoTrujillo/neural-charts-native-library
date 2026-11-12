@@ -6,7 +6,7 @@ Native charts for Angular Native apps on iOS and Android. The beta includes 62 c
 
 ## Get started
 
-Start with an Angular Native app configured for Expo, including the Angular Native Metro preset and a `GestureRoot`. Check the supported peer versions and follow the [installation guide](https://charts-native.neuralui.org/docs/installation).
+Start with Angular 22.2 or later in the 22.x series, Angular Native 0.22.2, Expo SDK 58 (58.0.16 or later within 58.0.x), React Native 0.88.x and `react-native-svg` 15.15.4. This host can also install Neural Native 0.1.0-beta.7. Expo Go for SDK 58 ships with SVG 15.16.0, so build your app with SVG 15.15.4. Use the Angular Native Metro preset and a `GestureRoot`. Follow the [installation guide](https://charts-native.neuralui.org/docs/installation).
 
 Install the beta in your app:
 
@@ -15,6 +15,8 @@ npm install @neural-charts/native@beta
 ```
 
 Core is installed as a pinned dependency. The chart package declares Angular, Angular Native and the Expo/React Native modules it uses as peers.
+
+If an iOS build of `NgNativeExpo` fails with `Unable to resolve module dependency: ExpoModulesCore`, Expo SDK 58 supports building its modules from source. Install `expo-build-properties` with `npx expo install expo-build-properties` and set `ios.usePrecompiledModules` to `false` in that plugin's options. Regenerate the iOS project and rebuild. [Expo SDK 58 BuildProperties](https://docs.expo.dev/versions/v58.0.0/sdk/build-properties/)
 
 In your screen's TypeScript file, import `NativeDataChart`, register it in the component's `imports` and bind the chart's data and options. This example receives the line data from its parent.
 
@@ -60,4 +62,4 @@ Use Vitest and `@ng-native/testing` to check selection, legend visibility and in
 
 ## Develop the library
 
-Run `npm ci` followed by `npm run verify` to compile the library, validate its distribution and run the package tests. The source is published with the package license field `UNLICENSED`. Third-party terms are recorded in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Run `npm ci` followed by `npm run verify` to compile the library, run the package tests and validate the distribution. The package checks build a fresh distribution. CI also packs the beta, installs it with Neural Native in a clean consumer using npm's peer resolution, and checks the chart screen with Angular's strict template compiler. The source is published with the package license field `UNLICENSED`. Third-party terms are recorded in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

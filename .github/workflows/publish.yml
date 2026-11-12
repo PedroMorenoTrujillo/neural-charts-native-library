@@ -57,6 +57,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run verify
       - run: node tooling/prepare-beta.mjs dist release
+      - run: node tooling/verify-consumer.mjs "release/archive/neural-charts-native-${GITHUB_REF_NAME#v}.tgz"
       - name: Write archive digest
         working-directory: release/archive
         run: sha256sum "neural-charts-native-${GITHUB_REF_NAME#v}.tgz" > SHA256SUMS
