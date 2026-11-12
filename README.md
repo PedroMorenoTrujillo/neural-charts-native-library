@@ -16,6 +16,8 @@ npm install @neural-charts/native@beta
 
 Core is installed as a pinned dependency. The chart package declares Angular, Angular Native and the Expo/React Native modules it uses as peers.
 
+If an iOS build of `NgNativeExpo` fails with `Unable to resolve module dependency: ExpoModulesCore`, Expo SDK 58 supports building its modules from source. Install `expo-build-properties` with `npx expo install expo-build-properties` and set `ios.usePrecompiledModules` to `false` in that plugin's options. Regenerate the iOS project and rebuild. [Expo SDK 58 BuildProperties](https://docs.expo.dev/versions/v58.0.0/sdk/build-properties/)
+
 In your screen's TypeScript file, import `NativeDataChart`, register it in the component's `imports` and bind the chart's data and options. This example receives the line data from its parent.
 
 ```ts
