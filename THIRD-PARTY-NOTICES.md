@@ -1,6 +1,6 @@
 # Third-party notices
 
-This proprietary project was bootstrapped with @ng-native/template 0.19.1. The platform bootstrap, Metro configuration and initial configuration structure derive from the Angular Native project, licensed under MIT. All dependency licenses remain with their respective owners; package-lock.json records their exact versions. Highcharts is only a visual reference and contributes no runtime, source, asset or trademark to this package.
+This project was bootstrapped with @ng-native/template 0.19.1. The platform bootstrap, Metro configuration and initial configuration structure derive from the Angular Native project, licensed under MIT. All dependency licenses remain with their respective owners; package-lock.json records their exact versions. Highcharts is only a visual reference and contributes no runtime, source, asset or trademark to this package.
 
 Angular Native template upstream license:
 

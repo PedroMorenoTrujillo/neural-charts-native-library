@@ -15,7 +15,7 @@ const metadata = JSON.parse(readFileSync(join(dist, 'package.json'), 'utf8'));
 assert.equal(metadata.name, '@neural-charts/native');
 assert.match(metadata.version, /^\d+\.\d+\.\d+-beta\.\d+$/);
 assert.equal(metadata.private, true, 'Use a regular verified private dist build as input');
-assert.equal(metadata.license, 'UNLICENSED');
+assert.equal(metadata.license, 'MIT');
 assert.deepEqual(Object.keys(metadata.dependencies), ['@neural-charts/core']);
 const core = metadata.dependencies['@neural-charts/core'];
 assert.match(core, /^\d+\.\d+\.\d+$/, 'Build Native against a published stable Core release');
@@ -49,7 +49,8 @@ function verifyRuntimeTree(folder) {
 
 verifyRuntimeTree(join(dist, 'native'));
 verifyRuntimeTree(join(dist, 'library'));
-for (const name of ['README.md', 'THIRD-PARTY-NOTICES.md']) assert(lstatSync(join(dist, name)).isFile());
+const documentation = ['LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md'];
+for (const name of documentation) assert(lstatSync(join(dist, name)).isFile());
 
 mkdirSync(output);
 const candidate = join(output, 'dist');
@@ -57,13 +58,13 @@ const archiveDir = join(output, 'archive');
 mkdirSync(candidate, {recursive: true});
 mkdirSync(archiveDir);
 try {
-  for (const name of ['native', 'library', 'README.md', 'THIRD-PARTY-NOTICES.md']) {
+  for (const name of ['native', 'library', ...documentation]) {
     cpSync(join(dist, name), join(candidate, name), {recursive: true, errorOnExist: true, force: false});
   }
   delete metadata.scripts;
   delete metadata.private;
   metadata.repository = {type: 'git', url: 'git+https://github.com/PedroMorenoTrujillo/neural-charts-native-library.git'};
-  metadata.files = ['native', 'library', 'README.md', 'THIRD-PARTY-NOTICES.md'];
+  metadata.files = ['native', 'library', ...documentation];
   metadata.publishConfig = {access: 'public', tag: 'beta', registry: 'https://registry.npmjs.org/'};
   writeFileSync(join(candidate, 'package.json'), JSON.stringify(metadata, null, 2) + '\n');
 
@@ -73,8 +74,9 @@ try {
   assert.equal(pack.version, metadata.version);
   const filenames = pack.files.map(file => file.path).sort();
   for (const name of filenames) {
-    assert(/^(?:README\.md|THIRD-PARTY-NOTICES\.md|package\.json|(?:native|library)\/[\w./-]+\.(?:js|d\.ts)(?:\.map)?)$/.test(name) && !name.includes('..'), 'Unexpected archive file: ' + name);
+    assert(/^(?:LICENSE|README\.md|THIRD-PARTY-NOTICES\.md|package\.json|(?:native|library)\/[\w./-]+\.(?:js|d\.ts)(?:\.map)?)$/.test(name) && !name.includes('..'), 'Unexpected archive file: ' + name);
   }
+  assert(filenames.includes('LICENSE'), 'The archive must include the MIT license');
   const archive = join(archiveDir, pack.filename);
   const bytes = readFileSync(archive);
   const sha256 = createHash('sha256').update(bytes).digest('hex');
