@@ -62,4 +62,4 @@ Use Vitest and `@ng-native/testing` to check selection, legend visibility and in
 
 ## Develop the library
 
-Run `npm ci` followed by `npm run verify` to compile the library, run the package tests and validate the distribution. The package checks build a fresh distribution. CI also packs the beta, installs it with Neural Native in a clean consumer using npm's peer resolution, and checks the chart screen with Angular's strict template compiler. The source is published with the package license field `UNLICENSED`. Third-party terms are recorded in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Run `npm ci` followed by `npm run verify` to compile the library, run the package tests and validate the distribution. The package checks build a fresh distribution. CI also packs the beta, installs it with Neural Native in a clean consumer using npm's peer resolution, and checks the chart screen with Angular's strict template compiler. The library is released under the [MIT License](LICENSE). Third-party terms are recorded in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

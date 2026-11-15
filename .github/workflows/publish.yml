@@ -48,6 +48,8 @@ jobs:
           assert.match(pkg.version, /^\d+\.\d+\.\d+-beta\.\d+$/);
           assert.equal(process.env.GITHUB_REF_NAME, 'v' + pkg.version);
           assert.equal(pkg.private, true);
+          assert.equal(pkg.license, 'MIT');
+          assert.equal(lock.packages[''].license, pkg.license);
           assert.match(core, /^\d+\.\d+\.\d+$/);
           assert.equal(lock.packages[''].dependencies['@neural-charts/core'], core);
           assert.equal(installed.version, core);
@@ -153,4 +155,14 @@ jobs:
           assert.equal(published?.dist?.integrity, integrity, 'The verified beta archive did not appear in the registry');
           assert.ok(visibleBeta && beta.test(visibleBeta) && compareBeta(visibleBeta, version) >= 0,
             'The beta tag has not propagated to the registry');
+          const tags = await read(channel + '?verify=' + Date.now());
+          if (tags?.beta === version && beta.test(tags.latest ?? '') && compareBeta(version, tags.latest) > 0) {
+            execFileSync('npm', ['dist-tag', 'add', '@neural-charts/native@' + version, 'latest'], {stdio: 'inherit'});
+            for (let i = 0; i < 30; i++) {
+              const latest = (await read(channel + '?verify=' + Date.now()))?.latest;
+              if (latest === version) process.exit(0);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            assert.fail('The latest tag has not propagated to the registry');
+          }
           NODE

@@ -13,7 +13,7 @@ const core = source.dependencies['@neural-charts/core'];
 assert.match(core, /^\d+\.\d+\.\d+$/);
 assert.equal(load('node_modules/@neural-charts/core/package.json').version, core);
 assert.equal(source.private, true);
-assert.equal(source.license, 'UNLICENSED');
+assert.equal(source.license, 'MIT');
 
 rmSync(join(root, 'dist'), {recursive: true, force: true});
 execFileSync(process.execPath, [join(root, compilerPath, compiler.bin.ngc), '-p', 'tsconfig.native.json'], {cwd: root, stdio: 'inherit'});
@@ -37,4 +37,4 @@ const manifest = {
   sideEffects: false,
 };
 writeFileSync(join(root, 'dist/package.json'), JSON.stringify(manifest, null, 2) + '\n');
-for (const file of ['README.md', 'THIRD-PARTY-NOTICES.md']) copyFileSync(join(root, file), join(root, 'dist', file));
+for (const file of ['LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md']) copyFileSync(join(root, file), join(root, 'dist', file));
