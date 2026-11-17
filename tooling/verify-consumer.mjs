@@ -4,13 +4,13 @@ import {copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'no
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 
-const [archive] = process.argv.slice(2);
-assert(archive, 'Usage: node tooling/verify-consumer.mjs CHARTS_ARCHIVE');
+const [archive, nativeArchive] = process.argv.slice(2);
+assert(archive, 'Usage: node tooling/verify-consumer.mjs CHARTS_ARCHIVE [NATIVE_ARCHIVE]');
 
 const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const charts = manifest.name;
 const native = '@neural-ui/native';
-const nativeVersion = '0.1.0-beta.7';
+const nativeVersion = '0.1.0-beta.8';
 const root = mkdtempSync(join(tmpdir(), 'neural-charts-consumer-'));
 const writeJson = (name, value) => writeFileSync(join(root, name), JSON.stringify(value, null, 2) + '\n');
 try {
@@ -28,7 +28,7 @@ try {
     name: 'neural-charts-consumer',
     private: true,
     type: 'module',
-    dependencies: {...host, [charts]: 'file:' + resolve(archive), [native]: nativeVersion},
+    dependencies: {...host, [charts]: 'file:' + resolve(archive), [native]: nativeArchive ? 'file:' + resolve(nativeArchive) : nativeVersion},
     devDependencies: compiler,
   });
   writeJson('tsconfig.json', {

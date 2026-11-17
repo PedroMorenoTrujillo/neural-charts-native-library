@@ -31,7 +31,7 @@ export const HAPTIC_ENVIRONMENT = new InjectionToken<NativeHapticEnvironment>('n
     const appSubscription = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
     subscriptions.push(appSubscription);
     return {
-      supported: () => device.isDevice && haptics.available && (Platform.OS === 'ios' || Platform.OS === 'android'),
+      supported: () => device.isDevice && haptics.available() && (Platform.OS === 'ios' || Platform.OS === 'android'),
       active: () => AppState.currentState === 'active',
       // Unknown battery state is conservatively silent.
       lowPower: () => lowPower !== false,
