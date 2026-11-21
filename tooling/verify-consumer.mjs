@@ -4,25 +4,25 @@ import {copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'no
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 
-const [archive, nativeArchive] = process.argv.slice(2);
-assert(archive, 'Usage: node tooling/verify-consumer.mjs CHARTS_ARCHIVE [NATIVE_ARCHIVE]');
+const [archive, nativeArchive, angularVersion] = process.argv.slice(2);
+assert(archive, 'Usage: node tooling/verify-consumer.mjs CHARTS_ARCHIVE [NATIVE_ARCHIVE] [ANGULAR_VERSION]');
 
 const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const charts = manifest.name;
 const native = '@neural-ui/native';
-const nativeVersion = '0.1.0-beta.8';
+const nativeVersion = '0.1.0-beta.9';
 const root = mkdtempSync(join(tmpdir(), 'neural-charts-consumer-'));
 const writeJson = (name, value) => writeFileSync(join(root, name), JSON.stringify(value, null, 2) + '\n');
 try {
   const host = Object.fromEntries(
     [...Object.keys(manifest.peerDependencies), '@angular/compiler', 'react']
       .map(name => {
-        const version = manifest.devDependencies[name];
+        const version = name.startsWith('@angular/') && angularVersion ? angularVersion : manifest.devDependencies[name];
         assert(version, 'Missing tested consumer dependency: ' + name);
         return [name, version];
       }),
   );
-  const compiler = {'@angular/compiler-cli': manifest.devDependencies['@angular/compiler-cli'],
+  const compiler = {'@angular/compiler-cli': angularVersion ?? manifest.devDependencies['@angular/compiler-cli'],
     typescript: manifest.devDependencies.typescript};
   writeJson('package.json', {
     name: 'neural-charts-consumer',
