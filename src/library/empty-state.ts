@@ -1,6 +1,11 @@
 import type {NativeScene} from './contracts.js';
 
 export interface ChartEmptyState {readonly title:string;readonly description:string;}
+/** Hiding series is a visibility choice, not a source-width validation failure. */
+export function showVariwideSourceWarning(scene:NativeScene):boolean{
+  const allHidden=!!scene.legend?.length&&scene.legend.every(item=>!item.visible);
+  return scene.family==='variwide'&&scene.variwideLayout?.status==='no-positive-width'&&!allHidden;
+}
 /** Describe the absence of drawable marks, not the absence of source records. */
 export function chartEmptyState(scene:NativeScene,locale:'en'|'es'):ChartEmptyState|undefined{
   if(scene.wordcloud?.status==='measuring')return undefined;
