@@ -22,6 +22,9 @@ try {
         return [name, version];
       }),
   );
+  // Expo's optional web peer must follow its tested React version rather than
+  // pulling the newest react-dom patch into this clean native consumer.
+  host['react-dom'] = manifest.devDependencies.react;
   const compiler = {'@angular/compiler-cli': angularVersion ?? manifest.devDependencies['@angular/compiler-cli'],
     typescript: manifest.devDependencies.typescript};
   writeJson('package.json', {
