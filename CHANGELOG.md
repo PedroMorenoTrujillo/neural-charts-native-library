@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-beta.8 - 2026-11-23
+
+- Align the supported Angular Native baseline with 0.27.0.
+
 ## 0.1.0-beta.7 — 2026-11-21
 
 - Align framework dependencies and exact Angular Native peers with 0.25.0, including the Angular 22.3 web mount fix and Android color-scheme improvements.

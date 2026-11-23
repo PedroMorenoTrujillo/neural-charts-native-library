@@ -6,7 +6,7 @@ Native charts for Angular Native apps on iOS and Android. The beta includes 62 c
 
 ## Get started
 
-Start with Angular 22.2 or later in the 22.x series, Angular Native 0.25.0, Expo SDK 58 (58.0.16 or later within 58.0.x), React Native 0.88.x and `react-native-svg` 15.15.4. This host can also install Neural Native 0.1.0-beta.9. Expo Go for SDK 58 ships with SVG 15.16.0, so build your app with SVG 15.15.4. Use the Angular Native Metro preset and a `GestureRoot`. Follow the [installation guide](https://charts-native.neuralui.org/docs/installation).
+Start with Angular 22.2 or later in the 22.x series, Angular Native 0.27.0, Expo SDK 58 (58.0.16 or later within 58.0.x), React Native 0.88.x and `react-native-svg` 15.15.4. This host can also install Neural Native 0.1.0-beta.10. Expo Go for SDK 58 ships with SVG 15.16.0, so build your app with SVG 15.15.4. Use the Angular Native Metro preset and a `GestureRoot`. Follow the [installation guide](https://charts-native.neuralui.org/docs/installation).
 
 Install the beta in your app:
 
