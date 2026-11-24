@@ -8,7 +8,7 @@ import type {PlanCompoundPolygonHit} from '@neural-charts/core/plan';
 import {TilemapHitIndex} from './tilemap-hit.js';
 import {RelationshipHitIndex} from './relationship-hit-index.js';
 import {polygonObservation,sankeyObservation} from './polygon-hit.js';
-import { identityKey, type DatumId, type FrameClock, type HapticPort, type InteractionSnapshot, type NativeScene, type Observation,type SharedSelection } from './contracts.js';
+import { identityKey, type DatumId, type FrameClock, type HapticPort, type InteractionSnapshot, type NativeBar, type NativeScene, type Observation,type SharedSelection } from './contracts.js';
 import { ownScene,sceneInteractionKey } from './scene.js';
 import {TileIndex} from './tile-index.js';
 import {TemporalHitIndex} from './temporal-hit-index.js';
@@ -18,6 +18,7 @@ export class NativeChartSession {
   private currentScene: NativeScene;
   get scene():NativeScene{return this.currentScene;}
   private readonly positions=new Map<string,number>();
+  private readonly mixedColumns?: Map<Observation, NativeBar>;
   private readonly semanticGroups=new Map<string,readonly Observation[]>();
   private sharedCache:SharedSelection|undefined;
   private readonly sharedOrder:readonly Observation[];
@@ -72,12 +73,24 @@ export class NativeChartSession {
     this.tiles=(scene.family==='treemap'||scene.family==='organization')?new TileIndex(this.currentScene):null;
     if(contentMode==='shared'&&(!['fan','parallel','bullet','streamgraph','lollipop','dumbbell','columnpyramid','boxplot','errorbar','arearange','areasplinerange','columnrange','pareto','line','area','streamgraph','areaspline','spline','mixed','column','bar'].includes(scene.family)||scene.observations.some(p=>!p.group)))throw new Error('Shared tooltip requires semantic groups on line, column or bar observations');
     this.scene.observations.forEach((p,i)=>this.positions.set(identityKey(p.id),i));
+    if(scene.family==='mixed' && contentMode==='point'){
+      this.mixedColumns=new Map();
+      for(const series of this.scene.series)for(const bar of series.bars??[]){
+        if(bar.pointId===undefined || bar.width<=0 || bar.height<=0)continue;
+        const point=this.point({seriesId:series.id,pointId:bar.pointId});
+        if(point)this.mixedColumns.set(point,bar);
+      }
+    }
     const initial=initialSelection?this.point(initialSelection):null;
     this.active=initial;this.selected=initial?.id??null;
     this.listener = listener;
     const groups = new Map<number, Observation[]>();
     for (const p of ['fan','bullet','streamgraph','lollipop','dumbbell','columnpyramid','boxplot','errorbar','arearange','areasplinerange','columnrange','histogram','bellcurve','pareto','waterfall','line','area','streamgraph','areaspline','spline','mixed','column','bar'].includes(this.scene.family)?this.scene.observations:[]) {
-      const coordinate = contentMode==='shared'?p.group!.coordinate:(this.scene.family==='bar'||this.scene.family==='bullet'&&this.scene.bulletOrientation==='horizontal')?p.y:p.x;
+      let coordinate = contentMode==='shared'?p.group!.coordinate:(this.scene.family==='bar'||this.scene.family==='bullet'&&this.scene.bulletOrientation==='horizontal')?p.y:p.x;
+      // Co-located mixed marks share one bucket even if rectangle arithmetic rounds differently.
+      if (scene.family === 'mixed' && p.group && Math.abs(coordinate - p.group.coordinate) < 1e-8) {
+        coordinate = p.group.coordinate;
+      }
       const bucket = groups.get(coordinate) ?? [];
       bucket.push(p);
       groups.set(coordinate, bucket);
@@ -204,6 +217,7 @@ export class NativeChartSession {
     if (this.destroyed) return;
     this.destroyed = true;
     this.tiles?.destroy();
+    this.mixedColumns?.clear();
     this.temporal?.destroy();
     this.glyphCircles.clear();this.glyphPoints=[];
     this.pinned=false;
@@ -278,6 +292,22 @@ export class NativeChartSession {
     const left = this.groups[Math.max(0, low - 1)]!;
     const right = this.groups[Math.min(low, this.groups.length - 1)]!;
     const group = Math.abs(target - left.coordinate) <= Math.abs(target - right.coordinate) ? left : right;
+    if(this.mixedColumns?.size){
+      // The foreground line wins at its anchor. Elsewhere inside a column,
+      // select its painted rectangle, even when the line's value is nearer.
+      const radius=Math.max(1,this.touchTolerance/4);
+      let column:Observation|null=null,line:Observation|null=null,best=Infinity;
+      for(const bucket of left===right?[left]:[left,right])for(const point of bucket.points){
+        const bar=this.mixedColumns.get(point);
+        if(bar){
+          if(x>=bar.x && x<=bar.x+bar.width && y>=bar.y && y<=bar.y+bar.height)column=point;
+        }else if(point.lowValue===undefined){
+          const distance=(x-point.x)**2+(y-point.y)**2;
+          if(distance<=radius*radius && distance<best){line=point;best=distance;}
+        }
+      }
+      if(line||column)return line??column;
+    }
     if(this.scene.stackGroups||this.scene.family==='columnrange'||this.scene.family==='boxplot'||this.scene.family==='errorbar'||this.scene.family==='columnpyramid'){
       const precise=polygonObservation(left.points,x,y)??(left===right?null:polygonObservation(right.points,x,y));
       // Taps require a painted target. Continuous exploration follows the nearest
