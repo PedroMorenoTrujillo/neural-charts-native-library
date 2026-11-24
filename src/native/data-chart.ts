@@ -194,7 +194,14 @@ export class NativeDataChart<T extends NativeChartData=NativeChartData> {
     const metadata=this.metadata();
     // A null gauge has no drawable reading yet. Retain the option for its next
     // valid value instead of treating the deliberately empty scene as a bad ID.
-    const series=this.data().type==='gauge'&&result.scene.observations.length===0?[]:metadata.series;
+    const data=this.data();
+    let series:ReadonlyArray<{id:string;name?:string;color?:string}>|undefined=data.type==='gauge'&&result.scene.observations.length===0?[]:metadata.series;
+    if((data.type==='treegraph'||data.type==='organization'||data.type==='networkgraph') &&
+       this.options().appearance?.locale!=='en' && !data.groups?.some(group=>group.id==='nodes') &&
+       result.scene.legend?.some(group=>group.id==='nodes') && !series?.some(group=>group.id==='nodes'&&group.name!==undefined)){
+      const fallback={...series?.find(group=>group.id==='nodes'),id:'nodes',name:'Nodos'};
+      series=[...(series??[]).filter(group=>group.id!=='nodes'),fallback];
+    }
     try{return {status:result.status,scene:updateScenePresentation(result.scene,{...metadata,points:visiblePointAppearance(result.scene,metadata.points),series,unit:metadata.unit??result.scene.unit})};}
     catch{return {status:'invalid',diagnostic:{code:'INVALID_CONFIG',reason:'INVALID_PRESENTATION',path:'options',message:'Check title lengths and series IDs/colors in appearance.series.'}};}
   });

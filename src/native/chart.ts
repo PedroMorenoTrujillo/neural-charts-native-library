@@ -618,7 +618,7 @@ export class NativeChart {
     return [p.label,this.scene().family==='heatmap'||p.seriesName===p.label||p.seriesName===this.scene().unit?'':p.seriesName,observationValue(p,this.scene().family,format,this.locale())+' '+observationUnit(p,this.scene().family,this.scene().unit,this.scene().secondaryUnit),
       ...(p.node&&p.node.directed!==false?[(en?'Incoming':'Entrantes')+': '+format(p.node.incoming),(en?'Outgoing':'Salientes')+': '+format(p.node.outgoing),(en?'Depth':'Profundidad')+': '+format(p.node.depth)]:[]),
       ...directionalDetails(p,format,this.locale(),this.ownedScene().unit,this.ownedScene().family,this.ownedScene().regression),
-      ...(p.xValue===undefined?[]:[(this.xAxisTitle()||'X')+': '+format(p.xValue)]),
+      ...(p.xValue===undefined||p.interval||p.event?[]:[(this.xAxisTitle()||'X')+': '+format(p.xValue)]),
       ...(p.sizeValue===undefined?[]:[(en?'Size':'Tamaño')+': '+format(p.sizeValue)]),
       ...(p.percentage===undefined?[]:[format(p.percentage)+'%']),...(p.subtotal?[(en?'Subtotal':'Subtotal')+(p.incomplete?(en?' · incomplete known values':' · valores conocidos incompletos'):'')]:[])].filter(Boolean).join(', ');
   }
