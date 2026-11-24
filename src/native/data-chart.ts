@@ -150,6 +150,8 @@ export class NativeDataChart<T extends NativeChartData=NativeChartData> {
   }
   private readonly planning=computed(()=>this.renderActive()?(this.viewState().prepared??this.calculateWindow(this.viewState().value)):null);
   protected readonly viewportModel=computed(()=>{const result=this.planning();return !result||result.status==='invalid'?undefined:result.viewport;});
+  /** Live, read-only viewport bounds and selection for synchronized controls. */
+  readonly viewportState=this.viewportModel;
   protected readonly viewportRevision=computed(()=>this.viewState().revision);
   private readonly viewportAcknowledgment=signal(0);
   protected readonly viewportContext=computed<NativeViewportContext|undefined>(()=>{

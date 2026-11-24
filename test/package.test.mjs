@@ -42,6 +42,38 @@ test('compiled planner preserves zero and skips missing data during selection', 
   }
 });
 
+test('exploration of a 1,024-point line coalesces pending moves and preserves its scene', () => {
+  const count=1024;
+  const result=planNativeChart({
+    title:'History',family:'line',
+    axes:{x:{type:'linear',nice:false},y:{type:'linear',nice:false}},
+    series:[{id:'reading',name:'Reading',data:Array.from({length:count},(_,x)=>({id:'p'+x,x,y:10+x%20}))}],
+  },{width:360,height:260});
+  assert.equal(result.status,'ok');
+  const frames=new Map(),snapshots=[];
+  let nextFrame=0;
+  const session=new NativeChartSession(result.scene,{
+    request:callback=>{const id=++nextFrame;frames.set(id,callback);return id;},
+    cancel:id=>frames.delete(id),
+  },{allowed:()=>false,selection:()=>assert.fail('Haptics are disabled')},snapshot=>snapshots.push(snapshot));
+  try{
+    const scene=session.scene,points=scene.observations;
+    assert.equal(points.length,count);
+    session.begin(points[0].x,points[0].y,24);
+    for(const {x,y} of points.slice(1))session.move(x,y);
+    assert.equal(nextFrame,1);
+    assert.equal(frames.size,1);
+    assert.equal(snapshots.length,1);
+    const run=frames.get(1);
+    frames.delete(1);
+    run();
+    assert.equal(snapshots.length,2);
+    session.end(true);
+    assert.equal(session.scene,scene);
+    assert.deepEqual(session.snapshot.selected,points.at(-1).id);
+  }finally{session.destroy();}
+});
+
 test('compiled planner rejects a malformed chart', () => {
   assert.equal(planNativeChart({family: 'line'}, {width: 360, height: 280}).status, 'invalid');
 });

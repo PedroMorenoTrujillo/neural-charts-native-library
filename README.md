@@ -56,6 +56,33 @@ Use `<neu-c-panels>` for coordinated charts and `<neu-c-drilldown>` for navigati
 
 The web demos render the chart with browser input. Haptic feedback is available in the installed native app.
 
+### Select a historical range
+
+Add `NativeChartNavigator` to the screen's imports and connect it to a numeric or time line chart with an X viewport:
+
+```ts
+import {Component, input} from '@angular/core';
+import {NativeChartNavigator, NativeDataChart, type NativeChartOptions, type NativeLineData}
+  from '@neural-charts/native';
+
+@Component({
+  selector: 'energy-history',
+  imports: [NativeDataChart, NativeChartNavigator],
+  template: `
+    <neu-c-chart #chart [data]="history()" [options]="options" />
+    <neu-c-navigator [chart]="chart" />
+  `,
+})
+export class EnergyHistory {
+  readonly history = input.required<NativeLineData>();
+  protected readonly options = {viewport: {axes: 'x'}} satisfies NativeChartOptions<'line'>;
+}
+```
+
+The two handles preview the range as you drag. The chart plans the new range when you release. The labelled buttons adjust either endpoint without dragging. The reset restores the full X range and preserves any Y zoom. Pinching or using the chart's zoom controls updates the navigator through the same viewport state.
+
+The overview represents the first visible series by default. Set `seriesId` to choose a specific visible series. It samples extrema for display and leaves the chart's original data and point IDs intact. Time axes use epoch milliseconds and their range labels are formatted in UTC. The navigator supports linear and time X axes. Custom consumers can read the chart's `viewportState()` signal and write a window via `setViewport()`.
+
 ## Test your charts
 
 Use Vitest and `@ng-native/testing` to check selection, legend visibility and invalid data in your app. The [testing guide](https://charts-native.neuralui.org/docs/testing) includes the setup and a complete spec to copy.

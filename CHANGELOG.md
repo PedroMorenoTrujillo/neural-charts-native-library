@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0-beta.10 - 2026-11-24
+
+- Add a range navigator for numeric and time line charts, with a compact overview, draggable handles and accessible controls.
+- Synchronize the navigator with chart zoom and reset the horizontal range independently of the vertical range.
+
+## 0.1.0-beta.9
+
+- Correct mobile chart touch handling and accessible labels.
+
 ## 0.1.0-beta.8 - 2026-11-23
 
 - Align the supported Angular Native baseline with 0.27.0.
