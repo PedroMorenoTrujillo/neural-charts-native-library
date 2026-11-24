@@ -4,6 +4,7 @@ export type {NativeChartDrilldownKind,NativeChartDrilldownChartData,NativeChartD
 export type {NativeChartPanelData,NativeChartPanel,NativeChartPanelMember,NativeChartPanelLink,NativeChartPanelsData,NativeChartPanelsLayoutOptions,NativeChartPanelsAppearanceOptions,NativeChartPanelsOptions,NativeChartPanelOptionsByType,NativeChartPanelsVisibility,NativeChartPanelInteraction,NativeChartPanelDiagnostic,NativeChartPanelViewportLink,NativeChartPanelViewportChange} from './chart-panels-options.js';
 export { NativeChart } from './chart.js';
 export {NativeDataChart} from './data-chart.js';
+export {NativeChartNavigator} from './chart-navigator.js';
 export {NativeChartTooltipTemplate} from './chart-presentation.js';
 export type {NativeChartAxisLabelContext, NativeChartDataLabelContext, NativeChartLegendLabelContext, NativeChartLabelFormatters, NativeChartTooltipContext} from './chart-presentation.js';
 export {NativeChartType} from './chart-type.js';
