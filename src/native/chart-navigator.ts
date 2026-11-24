@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy,Component,DestroyRef,computed,inject,input,signa
 import {Pressable,Text,View,type LayoutEvent} from '@ng-native/components';
 import {NativeGesture} from '@ng-native/components/gestures';
 import {ColorScheme} from '@ng-native/device';
-import {NgIcon} from '@ng-icons/core';
+import {NgIcon} from '@ng-native/icons';
 import {Gesture} from 'react-native-gesture-handler';
 import type {NativeAppearanceOptions,NativeChartData,NativeNumericWindow} from './data-options.js';
 import type {PlanViewportState,PlanViewportValue} from './plan.js';
