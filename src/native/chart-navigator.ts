@@ -4,9 +4,8 @@ import {NativeGesture} from '@ng-native/components/gestures';
 import {ColorScheme} from '@ng-native/device';
 import {NgIcon} from '@ng-icons/core';
 import {Gesture} from 'react-native-gesture-handler';
-import type {NativeDataChart} from './data-chart.js';
-import type {NativeNumericWindow} from './data-options.js';
-import type {PlanViewportState} from './plan.js';
+import type {NativeAppearanceOptions,NativeChartData,NativeNumericWindow} from './data-options.js';
+import type {PlanViewportState,PlanViewportValue} from './plan.js';
 import {pointLease} from './input-lease.js';
 import {moveNavigatorEdge,navigatorOverview,navigatorRange,navigatorViewport} from './navigator-range.js';
 import {sameViewportValue} from './viewport-state.js';
@@ -19,6 +18,13 @@ const copy={
 } as const;
 
 type RangeDrag=Readonly<{state:PlanViewportState;edge:0|1;value:NativeNumericWindow}>;
+interface NavigatorChart {
+  data():NativeChartData;
+  options():Readonly<{appearance?:Pick<NativeAppearanceOptions,'locale'|'theme'>}>;
+  hiddenSeriesIds():readonly string[];
+  viewportState():PlanViewportState|undefined;
+  setViewport(value:PlanViewportValue):boolean;
+}
 
 /** Select the horizontal window of a numeric or time line chart. */
 @Component({
@@ -86,7 +92,7 @@ type RangeDrag=Readonly<{state:PlanViewportState;edge:0|1;value:NativeNumericWin
 })
 export class NativeChartNavigator {
   /** The chart owns the window, including zoom and pan initiated elsewhere. */
-  readonly chart=input.required<NativeDataChart>();
+  readonly chart=input.required<NavigatorChart>();
   /** An optional visible series used for the overview. Defaults to the first visible series. */
   readonly seriesId=input<string>();
 
