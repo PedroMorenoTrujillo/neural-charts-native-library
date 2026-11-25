@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-beta.13
+
+- Expand regression tests for chart data, tooltips, viewport gestures, linked panels, drilldown and accessible chart controls.
+
 ## 0.1.0-beta.10 - 2026-11-24
 
 - Add a range navigator for numeric and time line charts, with a compact overview, draggable handles and accessible controls.
