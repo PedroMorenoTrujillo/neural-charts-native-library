@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-beta.14 - 2026-11-26
+
+- Align with Angular Native 0.29.0 and accept patch releases in the 0.29.x series.
+
 ## 0.1.0-beta.13
 
 - Expand regression tests for chart data, tooltips, viewport gestures, linked panels, drilldown and accessible chart controls.
