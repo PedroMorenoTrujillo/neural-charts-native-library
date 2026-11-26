@@ -10,7 +10,7 @@ assert(archive, 'Usage: node tooling/verify-consumer.mjs CHARTS_ARCHIVE [NATIVE_
 const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const charts = manifest.name;
 const native = '@neural-ui/native';
-const nativeVersion = '0.1.0-beta.10';
+const nativeVersion = '0.1.0-beta.13';
 const root = mkdtempSync(join(tmpdir(), 'neural-charts-consumer-'));
 const writeJson = (name, value) => writeFileSync(join(root, name), JSON.stringify(value, null, 2) + '\n');
 try {
